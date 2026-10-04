@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CallX - Live Video</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <!-- LOBBY -->
+    <div id="lobby">
+        <div class="lobby-card">
+            <h1>CallX</h1>
+            <p class="subtitle">Live Video</p>
+
+            <div class="preview-box">
+                <video id="preview-video" autoplay playsinline muted></video>
+                <div id="preview-off-msg">Camera is off</div>
+            </div>
+
+            <div id="perm-error" style="display:none">
+                <p>⚠️ Camera/mic access was denied.<br>Please allow access in browser settings and refresh.</p>
+            </div>
+
+            <div class="lobby-toggles">
+                <button id="btn-lobby-mic" class="toggle-btn active">
+                    🎤 Mic On
+                </button>
+                <button id="btn-lobby-cam" class="toggle-btn active">
+                    📷 Cam On
+                </button>
+            </div>
+
+            <input id="name-input" type="text" placeholder="Your name..." maxlength="30" />
+            <button id="btn-join" class="join-btn">Enter Call</button>
+            <div id="join-status"></div>
+        </div>
+    </div>
+
+    <!-- CALL ROOM -->
+    <div id="room" style="display:none">
+        <div id="top-bar">
+            <span id="room-title">CallX Live</span>
+            <div id="room-controls">
+                <button id="btn-room-mic" class="toggle-btn active">🎤 Mic</button>
+                <button id="btn-room-cam" class="toggle-btn active">📷 Cam</button>
+            </div>
+        </div>
+        <div id="video-grid">
+            <!-- local tile injected by JS -->
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+    <script src="app.js?v=4"></script>
+</body>
+</html>
