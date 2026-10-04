@@ -290,3 +290,35 @@ function send(event, toId, extra = {}) {
 
 // ─── BOOT ──────────────────────────────────────────────────────────
 startLobby();
+
+// ─── LEAVE CALL ────────────────────────────────────────────────────
+$('btn-leave').addEventListener('click', leaveCall);
+
+async function leaveCall() {
+    // Close every peer connection and clear their tiles
+    Object.keys(peers).forEach(removePeer);
+
+    // Stop local camera/mic tracks so the indicator light turns off
+    localStream?.getTracks().forEach(t => t.stop());
+    localStream = null;
+
+    // Unsubscribe from Supabase channel
+    if (channel) {
+        await sb.removeChannel(channel);
+        channel = null;
+    }
+
+    // Clear the video grid for next session
+    videoGrid.innerHTML = '';
+
+    // Reset state
+    micOn = true;
+    camOn = true;
+    joinBtn.disabled  = false;
+    nameInput.value   = '';
+
+    // Go back to lobby and re-request camera
+    roomEl.style.display  = 'none';
+    lobbyEl.style.display = 'flex';
+    startLobby();
+}

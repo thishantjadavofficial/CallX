@@ -96,6 +96,22 @@ body {
     color: #f87171;
 }
 
+.leave-btn {
+    padding: 10px 18px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    background: #f87171;
+    color: #000;
+    transition: background 0.2s;
+}
+
+.leave-btn:hover {
+    background: #ef4444;
+}
+
 #perm-error {
     background: #3a1a1a;
     border-radius: 8px;
