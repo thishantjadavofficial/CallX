@@ -22,7 +22,7 @@ const STUN_ONLY = {
 // Falls back to STUN-only if the fetch fails (e.g. offline).
 // IMPORTANT: Replace YOUR_APP_NAME below with the app name shown in your
 // Metered dashboard → Developers tab (e.g. "callx" → "callx.metered.live")
-const METERED_APP_NAME = 'YOUR_APP_NAME'; // ← replace this
+const METERED_APP_NAME = 'call-x.metered.live'; // ← replace this
 const METERED_API_KEY  = 'pk_live_301dc8572f8d7d94d6ec0a4de0763e054d5fa566';
 
 async function getIceConfig() {
