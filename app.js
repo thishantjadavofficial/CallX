@@ -2,36 +2,45 @@
 const SUPABASE_URL      = 'https://yapdgdarusmfsifeqdwi.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlhcGRnZGFydXNtZnNpZmVxZHdpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTExMjQ5OTMsImV4cCI6MjEwNjcwMDk5M30.6x_3hI-3qUrpbAIW36A-MomAMp1peIv0ImGVO-UYWuc';
 
-// ─── ICE CONFIG: STUN + TURN (relay fallback for cross-NAT / international) ──
-// TURN servers are CRITICAL for cross-country/cross-carrier connections.
-// Without TURN, symmetric NATs (mobile carriers, corporate ISPs) simply cannot
-// form a direct P2P path and the connection silently fails.
-const ICE_CONFIG = {
+// ─── ICE CONFIG: STUN + TURN ───────────────────────────────────────
+// ICE_CONFIG is built dynamically at join time by fetching live TURN
+// credentials from Metered's API. See getIceConfig() below.
+// Hardcoded fallback STUN servers always apply.
+const STUN_ONLY = {
     iceServers: [
-        // Google STUN — for direct connections (same region, open NATs)
         { urls: 'stun:stun.l.google.com:19302' },
         { urls: 'stun:stun1.l.google.com:19302' },
         { urls: 'stun:stun2.l.google.com:19302' },
         { urls: 'stun:stun3.l.google.com:19302' },
         { urls: 'stun:stun4.l.google.com:19302' },
-        // Metered Open Relay TURN — relays media when P2P fails (international, mobile)
-        {
-            urls: [
-                'turn:openrelay.metered.ca:80',
-                'turn:openrelay.metered.ca:80?transport=tcp',
-                'turn:openrelay.metered.ca:443',
-                'turn:openrelay.metered.ca:443?transport=tcp',
-                'turns:openrelay.metered.ca:443',
-            ],
-            username: 'openrelayproject',
-            credential: 'openrelayproject',
-        },
     ],
-    // Gather candidates via UDP and TCP for maximum compatibility
     iceTransportPolicy: 'all',
-    // Pre-fetch ICE candidates before negotiation for lower latency
     iceCandidatePoolSize: 10,
 };
+
+// Fetches fresh TURN credentials from Metered's Open Relay API.
+// Falls back to STUN-only if the fetch fails (e.g. offline).
+// IMPORTANT: Replace YOUR_APP_NAME below with the app name shown in your
+// Metered dashboard → Developers tab (e.g. "callx" → "callx.metered.live")
+const METERED_APP_NAME = 'YOUR_APP_NAME'; // ← replace this
+const METERED_API_KEY  = 'pk_live_301dc8572f8d7d94d6ec0a4de0763e054d5fa566';
+
+async function getIceConfig() {
+    try {
+        const url = `https://${METERED_APP_NAME}.metered.live/api/v1/turn/credentials?apiKey=${METERED_API_KEY}`;
+        const resp = await fetch(url, { signal: AbortSignal.timeout(5000) });
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+        const iceServers = await resp.json();
+        console.log('✅ TURN credentials fetched:', iceServers.length, 'servers');
+        return { iceServers, iceTransportPolicy: 'all', iceCandidatePoolSize: 10 };
+    } catch (e) {
+        console.warn('⚠️ TURN fetch failed, using STUN-only fallback:', e.message);
+        return STUN_ONLY;
+    }
+}
+
+// Will be populated just before startSignaling() is called
+let ICE_CONFIG = STUN_ONLY;
 
 // ─── STATE ─────────────────────────────────────────────────────────
 const myId      = crypto.randomUUID();
@@ -113,6 +122,9 @@ joinBtn.addEventListener('click', async () => {
 
     lobbyEl.style.display = 'none';
     roomEl.style.display  = 'flex';
+
+    // Fetch live TURN credentials before connecting — critical for international relay
+    ICE_CONFIG = await getIceConfig();
 
     await startSignaling();
 });
